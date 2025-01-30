@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Layout from '../components/Layout';
 import Header from '../components/Header';
-import PromptSection from '../components/Promptsection';
+import PromptSection from '../components/PromptSection';
 import GeneratedPlaylist from '../components/GeneratedPlaylist';
 
 interface MainPageProps {
@@ -14,7 +14,7 @@ const MainPage: React.FC<MainPageProps> = ({ onLogout }) => {
 
   const handleGeneratePlaylist = (prompt: string, language: string, songCount: number) => {
     const mockSongs = Array.from({ length: songCount }, (_, i) => ({
-      id: `${i + 1}`,
+      id: `${prompt}-${i + 1}`,
       name: `${language} Song ${i + 1}`,
       artist: `Artist ${i + 1}`,
       previewUrl: '#'
