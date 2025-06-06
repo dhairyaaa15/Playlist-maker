@@ -24,9 +24,7 @@ const MainPage: React.FC<MainPageProps> = ({ onLogout }) => {
   return (
     <Layout>
       <Header onLogout={onLogout} />
-      <main className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-primary mb-8 text-center">Your Music Dashboard</h1>
-        
+      <main className="container mx-auto px-4 py-8">        
         {/* Spotify Connection */}
         <div className="mb-8">
           <SpotifyConnection />

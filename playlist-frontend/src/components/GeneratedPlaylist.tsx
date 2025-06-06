@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Save, Music, AlertCircle, CheckCircle, Loader, ExternalLink, RefreshCw } from 'lucide-react';
+import { Play, Save, Music, AlertCircle, CheckCircle, Loader, ExternalLink, RefreshCw, X } from 'lucide-react';
 import { Playlist, playlistAPI, spotifyAPI } from '../services/api';
 
 interface GeneratedPlaylistProps {
@@ -25,7 +25,6 @@ const GeneratedPlaylist: React.FC<GeneratedPlaylistProps> = ({ playlist, onSave 
   const checkSpotifyStatus = async () => {
     try {
       const response = await spotifyAPI.getStatus();
-      console.log('Spotify status in GeneratedPlaylist:', response);
       setIsSpotifyConnected(response.isConnected);
     } catch (error) {
       console.error('Error checking Spotify status:', error);
@@ -38,14 +37,11 @@ const GeneratedPlaylist: React.FC<GeneratedPlaylistProps> = ({ playlist, onSave 
     setError(null);
 
     try {
-      console.log('Saving playlist:', playlist);
       const response = await playlistAPI.save(playlist);
-      console.log('Save response:', response);
       
       if (response.success) {
         setSaved(true);
         setSavedPlaylistId(response.playlist?._id || null);
-        console.log('Saved playlist ID:', response.playlist?._id);
         
         if (onSave && response.playlist) {
           onSave(response.playlist);
@@ -55,7 +51,6 @@ const GeneratedPlaylist: React.FC<GeneratedPlaylistProps> = ({ playlist, onSave 
         setError(response.message || 'Failed to save playlist');
       }
     } catch (err: any) {
-      console.error('Save error:', err);
       setError(err.response?.data?.message || 'Failed to save playlist');
     } finally {
       setSaving(false);
@@ -77,9 +72,7 @@ const GeneratedPlaylist: React.FC<GeneratedPlaylistProps> = ({ playlist, onSave 
     setError(null);
 
     try {
-      console.log('Creating Spotify playlist with ID:', savedPlaylistId);
       const response = await spotifyAPI.createPlaylist(savedPlaylistId);
-      console.log('Spotify creation response:', response);
       
       if (response.success) {
         setSpotifyPlaylistCreated(true);
@@ -96,7 +89,6 @@ const GeneratedPlaylist: React.FC<GeneratedPlaylistProps> = ({ playlist, onSave 
         }
       }
     } catch (err: any) {
-      console.error('Spotify creation error:', err);
       setError(err.response?.data?.message || 'Failed to create Spotify playlist');
     } finally {
       setCreatingSpotifyPlaylist(false);
@@ -134,67 +126,73 @@ const GeneratedPlaylist: React.FC<GeneratedPlaylistProps> = ({ playlist, onSave 
   };
 
   return (
-    <div className="bg-surface p-6 rounded-lg shadow-lg">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-primary">{playlist.name}</h2>
-          <p className="text-textSecondary text-sm mt-1">{playlist.description}</p>
-          <div className="flex items-center space-x-4 mt-2 text-xs text-textSecondary">
+    <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-4 sm:p-6 shadow-xl">
+      {/* Header */}
+      <div className="flex items-center space-x-3 mb-6">
+        <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+          <Music className="w-5 h-5 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-white truncate">{playlist.name}</h2>
+          <p className="text-sm text-gray-400 truncate">{playlist.description}</p>
+          <div className="flex items-center space-x-4 mt-2 text-xs text-gray-400">
             <span>🎵 {playlist.songs.length} songs</span>
             <span>🌍 {playlist.language}</span>
-            <span>🎭 {playlist.mood}</span>
+            {playlist.mood && <span>🎭 {playlist.mood}</span>}
             {playlist.aiProvider && <span>🤖 {playlist.aiProvider}</span>}
           </div>
-        </div>
-        
-        {/* Debug info */}
-        <div className="text-xs text-textSecondary">
-          <div>Spotify: {isSpotifyConnected ? '✅' : '❌'}</div>
-          <div>Saved: {savedPlaylistId ? '✅' : '❌'}</div>
         </div>
       </div>
 
       {/* Error Display */}
       {error && (
-        <div className="mb-4 p-3 bg-red-500 bg-opacity-20 border border-red-500 rounded-md flex items-center space-x-2">
-          <AlertCircle className="w-5 h-5 text-red-400" />
-          <span className="text-red-400 text-sm">{error}</span>
-          <button 
-            onClick={() => setError(null)}
-            className="ml-auto text-red-400 hover:text-red-300"
-          >
-            ✕
-          </button>
+        <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <div className="flex items-start space-x-3">
+            <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-red-400 leading-relaxed">{error}</p>
+            </div>
+            <button 
+              onClick={() => setError(null)}
+              className="text-red-400 hover:text-red-300 transition-colors flex-shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       )}
 
       {/* Success Messages */}
       {saved && (
-        <div className="mb-4 p-3 bg-green-500 bg-opacity-20 border border-green-500 rounded-md flex items-center space-x-2">
-          <CheckCircle className="w-5 h-5 text-green-400" />
-          <span className="text-green-400 text-sm">Playlist saved successfully!</span>
+        <div className="mb-6 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+          <div className="flex items-start space-x-3">
+            <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-green-400 leading-relaxed">Playlist saved successfully!</p>
+            </div>
+          </div>
         </div>
       )}
 
       {spotifyPlaylistCreated && spotifyResult && (
-        <div className="mb-4 p-3 bg-green-500 bg-opacity-20 border border-green-500 rounded-md">
-          <div className="flex items-center space-x-2 mb-2">
-            <CheckCircle className="w-5 h-5 text-green-400" />
-            <span className="text-green-400 text-sm font-semibold">Playlist created on Spotify!</span>
-          </div>
-          <div className="text-xs text-green-300">
-            <div>Playlist: {spotifyResult.name}</div>
-            {spotifyResult.external_urls?.spotify && (
-              <a 
-                href={spotifyResult.external_urls.spotify} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-green-400 hover:text-green-300 underline flex items-center space-x-1"
-              >
-                <ExternalLink className="w-3 h-3" />
-                <span>Open in Spotify</span>
-              </a>
-            )}
+        <div className="mb-6 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+          <div className="flex items-start space-x-3">
+            <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-medium text-green-400 mb-1">Playlist created on Spotify!</h4>
+              <p className="text-xs text-green-300/80">{spotifyResult.name}</p>
+              {spotifyResult.external_urls?.spotify && (
+                <a 
+                  href={spotifyResult.external_urls.spotify} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-green-300 hover:text-green-200 text-xs flex items-center space-x-1 mt-1"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  <span>Open in Spotify</span>
+                </a>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -202,25 +200,25 @@ const GeneratedPlaylist: React.FC<GeneratedPlaylistProps> = ({ playlist, onSave 
       {/* Songs List */}
       <div className="space-y-3 max-h-96 overflow-y-auto pr-2 mb-6">
         {playlist.songs.map((song, index) => (
-          <div key={song.id} className="flex items-center justify-between bg-inputBg p-4 rounded-md hover:bg-surface transition duration-300 border border-inputBorder">
-            <div className="flex items-center space-x-3 flex-1">
-              <span className="text-accent font-semibold text-sm w-6">{index + 1}</span>
+          <div key={song.id} className="flex items-center justify-between bg-slate-700/50 p-4 rounded-lg hover:bg-slate-600/50 transition duration-200 border border-slate-600/50">
+            <div className="flex items-center space-x-3 flex-1 min-w-0">
+              <span className="text-blue-400 font-semibold text-sm w-6">{index + 1}</span>
               
               {song.image && (
                 <img
                   src={song.image}
                   alt={`${song.name} album cover`}
-                  className="w-12 h-12 rounded object-cover"
+                  className="w-10 h-10 rounded object-cover flex-shrink-0"
                 />
               )}
               
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-text truncate">{song.name}</h3>
-                <p className="text-sm text-textSecondary truncate">{song.artist}</p>
-                <div className="flex items-center space-x-2 text-xs text-textSecondary mt-1">
-                  <span>{song.album}</span>
-                  <span>•</span>
-                  <span>{song.duration}</span>
+                <h3 className="font-medium text-white truncate">{song.name}</h3>
+                <p className="text-sm text-gray-300 truncate">{song.artist}</p>
+                <div className="flex items-center space-x-2 text-xs text-gray-400 mt-1">
+                  {song.album && <span className="truncate">{song.album}</span>}
+                  {song.album && song.duration && <span>•</span>}
+                  {song.duration && <span>{song.duration}</span>}
                   {song.mood && (
                     <>
                       <span>•</span>
@@ -236,10 +234,10 @@ const GeneratedPlaylist: React.FC<GeneratedPlaylistProps> = ({ playlist, onSave 
                 <>
                   <button
                     onClick={() => playPreview(song.previewUrl, song.id)}
-                    className="p-2 bg-primary rounded-full hover:bg-secondary transition duration-300 transform hover:scale-110"
+                    className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full hover:from-blue-700 hover:to-purple-700 transition duration-200 transform hover:scale-110"
                     title="Play Preview"
                   >
-                    <Play size={16} className="text-background" />
+                    <Play size={16} className="text-white" />
                   </button>
                   <audio
                     id={`audio-${song.id}`}
@@ -254,28 +252,28 @@ const GeneratedPlaylist: React.FC<GeneratedPlaylistProps> = ({ playlist, onSave 
       </div>
 
       {/* Action Buttons */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {/* Save Button */}
         <div className="flex space-x-3">
           <button
             onClick={handleSave}
             disabled={saving || saved}
-            className="flex-1 bg-primary text-background py-3 rounded-md hover:bg-secondary transition duration-300 flex items-center justify-center space-x-2 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2"
           >
             {saving ? (
               <>
                 <Loader className="w-5 h-5 animate-spin" />
-                <span className="text-lg font-semibold">Saving...</span>
+                <span className="text-base font-semibold">Saving...</span>
               </>
             ) : saved ? (
               <>
-                <CheckCircle size={20} />
-                <span className="text-lg font-semibold">Saved!</span>
+                <CheckCircle className="w-5 h-5" />
+                <span className="text-base font-semibold">Saved!</span>
               </>
             ) : (
               <>
-                <Save size={20} />
-                <span className="text-lg font-semibold">Save Playlist</span>
+                <Save className="w-5 h-5" />
+                <span className="text-base font-semibold">Save Playlist</span>
               </>
             )}
           </button>
@@ -283,10 +281,10 @@ const GeneratedPlaylist: React.FC<GeneratedPlaylistProps> = ({ playlist, onSave 
           {/* Refresh Spotify Status */}
           <button
             onClick={checkSpotifyStatus}
-            className="px-4 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition duration-300"
+            className="px-4 py-3 bg-slate-700/50 hover:bg-slate-600/50 text-white rounded-lg transition duration-200 border border-slate-600/50 flex items-center justify-center"
             title="Refresh Spotify Status"
           >
-            <RefreshCw size={20} />
+            <RefreshCw className="w-5 h-5" />
           </button>
         </div>
 
@@ -296,34 +294,34 @@ const GeneratedPlaylist: React.FC<GeneratedPlaylistProps> = ({ playlist, onSave 
             <button
               onClick={handleCreateSpotifyPlaylist}
               disabled={creatingSpotifyPlaylist || !savedPlaylistId || spotifyPlaylistCreated}
-              className="flex-1 bg-green-500 text-white py-3 rounded-md hover:bg-green-600 transition duration-300 flex items-center justify-center space-x-2 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-slate-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2"
             >
               {creatingSpotifyPlaylist ? (
                 <>
                   <Loader className="w-5 h-5 animate-spin" />
-                  <span className="text-lg font-semibold">Creating on Spotify...</span>
+                  <span className="text-base font-semibold">Creating on Spotify...</span>
                 </>
               ) : spotifyPlaylistCreated ? (
                 <>
-                  <CheckCircle size={20} />
-                  <span className="text-lg font-semibold">Created on Spotify!</span>
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="text-base font-semibold">Created on Spotify!</span>
                 </>
               ) : !savedPlaylistId ? (
                 <>
-                  <Save size={20} />
-                  <span className="text-lg font-semibold">Save First, Then Create on Spotify</span>
+                  <Save className="w-5 h-5" />
+                  <span className="text-base font-semibold">Save First, Then Save it on Spotify</span>
                 </>
               ) : (
                 <>
-                  <ExternalLink size={20} />
-                  <span className="text-lg font-semibold">Create on Spotify</span>
+                  <ExternalLink className="w-5 h-5" />
+                  <span className="text-base font-semibold">Save it on Spotify</span>
                 </>
               )}
             </button>
           ) : (
-            <div className="flex-1 bg-gray-500 text-white py-3 rounded-md flex items-center justify-center space-x-2 opacity-50">
-              <Music size={20} />
-              <span className="text-lg font-semibold">Connect Spotify First</span>
+            <div className="flex-1 bg-slate-700/50 text-gray-400 py-3 px-4 rounded-lg flex items-center justify-center space-x-2 border border-slate-600/50">
+              <Music className="w-5 h-5" />
+              <span className="text-base font-semibold">Connect Spotify First</span>
             </div>
           )}
         </div>
@@ -333,4 +331,3 @@ const GeneratedPlaylist: React.FC<GeneratedPlaylistProps> = ({ playlist, onSave 
 };
 
 export default GeneratedPlaylist;
-
