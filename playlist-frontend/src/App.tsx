@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import SignupLoginPage from './Pages/SignupLoginPage';
 import MainPage from './Pages/MainPage';
+import SpotifyCallback from './Pages/SpotifyCallback';
 import { Loader } from 'lucide-react';
 
 const AppContent: React.FC = () => {
@@ -28,10 +30,20 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <>
-      {currentPage === 'login' && <SignupLoginPage onLogin={() => setCurrentPage('main')} />}
-      {currentPage === 'main' && <MainPage onLogout={() => setCurrentPage('login')} />}
-    </>
+    <Router>
+      <Routes>
+        {/* Spotify callback route - accessible without authentication */}
+        <Route path="/callback" element={<SpotifyCallback />} />
+        
+        {/* Main app routes */}
+        <Route path="/" element={
+          <>
+            {currentPage === 'login' && <SignupLoginPage onLogin={() => setCurrentPage('main')} />}
+            {currentPage === 'main' && <MainPage onLogout={() => setCurrentPage('login')} />}
+          </>
+        } />
+      </Routes>
+    </Router>
   );
 };
 

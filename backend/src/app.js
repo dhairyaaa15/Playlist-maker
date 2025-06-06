@@ -15,25 +15,54 @@ const app = express();
 // Connect to Database
 connectDB();
 
+// CORS Configuration - MUST BE FIRST
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range']
+}));
+
+// Handle preflight requests
+app.options('*', cors());
+
 // Security Middleware
-app.use(helmet());
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: ["'self'", "http://localhost:5173"],
+    },
+  },
+}));
 
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 1000, // Increased for development
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again later.'
+  }
 });
 app.use(limiter);
-
-// CORS
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
-}));
 
 // Body Parser
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Add request logging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -43,12 +72,17 @@ app.use('/api/user', userRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'AI Playlist Maker API is running' });
+  res.json({ 
+    status: 'OK', 
+    message: 'AI Playlist Maker API is running',
+    cors: 'enabled',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Error Handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Error:', err.stack);
   res.status(500).json({ 
     success: false, 
     message: 'Something went wrong!',
@@ -58,14 +92,17 @@ app.use((err, req, res, next) => {
 
 // 404 Handler
 app.use('*', (req, res) => {
+  console.log(`404 - Route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({ success: false, message: 'Route not found' });
 });
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌐 CORS enabled for frontend`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
+  console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
 });
 
 module.exports = app;

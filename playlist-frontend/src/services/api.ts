@@ -8,6 +8,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000, // 30 second timeout
+  withCredentials: true, // Important for CORS
 });
 
 // Request interceptor to add auth token
@@ -17,17 +19,30 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    console.log(`Making ${config.method?.toUpperCase()} request to:`, config.url);
     return config;
   },
   (error) => {
+    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
 
 // Response interceptor to handle token expiration
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`Response from ${response.config.url}:`, response.status);
+    return response;
+  },
   (error) => {
+    console.error('API Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      message: error.message,
+      data: error.response?.data
+    });
+
     if (error.response?.status === 401) {
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
@@ -41,6 +56,7 @@ export interface User {
   _id: string;
   username: string;
   email: string;
+  spotifyId?: string;
   preferences: {
     defaultLanguage: string;
     defaultSongCount: number;
@@ -72,6 +88,8 @@ export interface Playlist {
   genre?: string;
   generatedAt?: Date;
   aiProvider?: string;
+  spotifyPlaylistId?: string;
+  spotifyPlaylistUrl?: string;
 }
 
 export interface AuthResponse {

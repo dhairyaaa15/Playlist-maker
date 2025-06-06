@@ -3,6 +3,7 @@ import Layout from '../components/Layout';
 import Header from '../components/Header';
 import PromptSection from '../components/PromptSection';
 import GeneratedPlaylist from '../components/GeneratedPlaylist';
+import SpotifyConnection from '../components/SpotifyConnection';
 import { Playlist } from '../services/api';
 
 interface MainPageProps {
@@ -18,7 +19,6 @@ const MainPage: React.FC<MainPageProps> = ({ onLogout }) => {
 
   const handleSavePlaylist = (savedPlaylist: Playlist) => {
     console.log('Playlist saved:', savedPlaylist);
-    // You can add additional logic here like updating a list of saved playlists
   };
 
   return (
@@ -26,6 +26,12 @@ const MainPage: React.FC<MainPageProps> = ({ onLogout }) => {
       <Header onLogout={onLogout} />
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold text-primary mb-8 text-center">Your Music Dashboard</h1>
+        
+        {/* Spotify Connection */}
+        <div className="mb-8">
+          <SpotifyConnection />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <PromptSection onGeneratePlaylist={handleGeneratePlaylist} />
           {currentPlaylist && (

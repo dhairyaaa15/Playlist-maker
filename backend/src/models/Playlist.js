@@ -14,7 +14,9 @@ const songSchema = new mongoose.Schema({
   spotifyId: String,
   duration: String,
   album: String,
-  image: String
+  image: String,
+  mood: String,
+  reason: String
 });
 
 const playlistSchema = new mongoose.Schema({
@@ -47,8 +49,17 @@ const playlistSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  // Spotify Integration Fields
   spotifyPlaylistId: {
     type: String,
+    default: null
+  },
+  spotifyPlaylistUrl: {
+    type: String,
+    default: null
+  },
+  spotifyCreatedAt: {
+    type: Date,
     default: null
   },
   isPublic: {
@@ -61,5 +72,9 @@ const playlistSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Index for better performance
+playlistSchema.index({ user: 1, createdAt: -1 });
+playlistSchema.index({ isPublic: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Playlist', playlistSchema);

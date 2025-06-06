@@ -15,13 +15,14 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Email is required'],
     unique: true,
     lowercase: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
+    trim: true
   },
   password: {
     type: String,
     required: [true, 'Password is required'],
     minlength: [6, 'Password must be at least 6 characters']
   },
+  // Spotify Integration Fields
   spotifyId: {
     type: String,
     default: null
@@ -32,6 +33,10 @@ const userSchema = new mongoose.Schema({
   },
   spotifyRefreshToken: {
     type: String,
+    default: null
+  },
+  spotifyTokenExpiry: {
+    type: Date,
     default: null
   },
   playlists: [{
@@ -80,5 +85,9 @@ userSchema.methods.toJSON = function() {
   delete user.spotifyRefreshToken;
   return user;
 };
+
+// Index for better performance
+userSchema.index({ email: 1 });
+userSchema.index({ username: 1 });
 
 module.exports = mongoose.model('User', userSchema);
