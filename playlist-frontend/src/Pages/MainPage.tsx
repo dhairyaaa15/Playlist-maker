@@ -3,34 +3,37 @@ import Layout from '../components/Layout';
 import Header from '../components/Header';
 import PromptSection from '../components/PromptSection';
 import GeneratedPlaylist from '../components/GeneratedPlaylist';
+import { Playlist } from '../services/api';
 
 interface MainPageProps {
   onLogout: () => void;
 }
 
 const MainPage: React.FC<MainPageProps> = ({ onLogout }) => {
-  const [showGeneratedPlaylist, setShowGeneratedPlaylist] = useState(false);
-  const [songs, setSongs] = useState<Array<{ id: string; name: string; artist: string; previewUrl: string }>>([]);
+  const [currentPlaylist, setCurrentPlaylist] = useState<Playlist | null>(null);
 
-  const handleGeneratePlaylist = (prompt: string, language: string, songCount: number) => {
-    const mockSongs = Array.from({ length: songCount }, (_, i) => ({
-      id: `${prompt}-${i + 1}`,
-      name: `${language} Song ${i + 1}`,
-      artist: `Artist ${i + 1}`,
-      previewUrl: '#'
-    }));
-    setSongs(mockSongs);
-    setShowGeneratedPlaylist(true);
+  const handleGeneratePlaylist = (playlist: Playlist) => {
+    setCurrentPlaylist(playlist);
+  };
+
+  const handleSavePlaylist = (savedPlaylist: Playlist) => {
+    console.log('Playlist saved:', savedPlaylist);
+    // You can add additional logic here like updating a list of saved playlists
   };
 
   return (
     <Layout>
-      <Header username="John Doe" onLogout={onLogout} />
+      <Header onLogout={onLogout} />
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold text-primary mb-8 text-center">Your Music Dashboard</h1>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <PromptSection onGeneratePlaylist={handleGeneratePlaylist} />
-          {showGeneratedPlaylist && <GeneratedPlaylist songs={songs} />}
+          {currentPlaylist && (
+            <GeneratedPlaylist 
+              playlist={currentPlaylist} 
+              onSave={handleSavePlaylist}
+            />
+          )}
         </div>
       </main>
     </Layout>
